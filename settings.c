@@ -84,16 +84,9 @@ void SETTINGS_SaveVfoIndices(void)
 #ifdef ENABLE_ENCRYPTION
 void SETTINGS_SaveEncryptionKey()
 {	
-	EEPROM_WriteBuffer(0x0F30, gEeprom.ENC_KEY);
-	EEPROM_WriteBuffer(0x0F38, gEeprom.ENC_KEY + 8);
+	EEPROM_WriteBuffer(0x1D20, gEeprom.ENC_KEY);
+	EEPROM_WriteBuffer(0x1D28, gEeprom.ENC_KEY + 8);
 	gRecalculateEncKey = true;
-}
-
-void SETTINGS_ClearEncryptionKey()
-{	
-	uint8_t State[8] = { 0xFF };
-	EEPROM_WriteBuffer(0x0F30, State);
-	EEPROM_WriteBuffer(0x0F38, State);
 }
 #endif
 

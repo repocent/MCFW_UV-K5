@@ -579,10 +579,6 @@ void MENU_AcceptSetting(void) {
 
 			case MENU_MSG_ENC:
 				gEeprom.MESSENGER_CONFIG.data.encrypt = gSubMenuSelection;
-        // Clear old KEY ???
-        //if ( gEeprom.MESSENGER_CONFIG.data.encrypt == 0 ) {
-        //  SETTINGS_ClearEncryptionKey();
-        //}
 				break;
 		#endif
 

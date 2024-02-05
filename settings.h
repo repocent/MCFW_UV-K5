@@ -241,7 +241,6 @@ void SETTINGS_UpdateChannel(uint8_t Channel, const VFO_Info_t *pVFO, bool bUpdat
 void GetChannelName(uint8_t num, char *name);
 #ifdef ENABLE_ENCRYPTION
 	void SETTINGS_SaveEncryptionKey();
-	void SETTINGS_ClearEncryptionKey();
 #endif
 #endif
 

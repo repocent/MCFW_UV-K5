@@ -695,27 +695,27 @@ void BOARD_EEPROM_Init(void)
 	}
 */
 
-// 0F18..0F1F
-EEPROM_ReadBuffer(0x0F18, Data, 8);
+	// 0F18..0F1F
+	EEPROM_ReadBuffer(0x0F18, Data, 8);
 
-gEeprom.SCAN_LIST_DEFAULT = (Data[0] < 3) ? Data[0] : false;
+	gEeprom.SCAN_LIST_DEFAULT = (Data[0] < 3) ? Data[0] : false;
 
-for (int i = 0; i < 2; i++) {
-    uint8_t j = (i * 3) + 1;
-    gEeprom.SCAN_LIST_ENABLED[i]     = (Data[j] < 3) ? Data[j] : false;
-    gEeprom.SCANLIST_PRIORITY_CH1[i] = Data[j + 1];
-    gEeprom.SCANLIST_PRIORITY_CH2[i] = Data[j + 2];
-/*
-    // Verifique se o canal não é um canal de usuário
-    if (!IS_USER_CHANNEL(gEeprom.SCAN_LIST_PRIORITY_CH1[i])) {
-        gEeprom.SCANLIST_PRIORITY_CH1[i] = 0xFF;
-    }
+	for (int i = 0; i < 2; i++) {
+		uint8_t j = (i * 3) + 1;
+		gEeprom.SCAN_LIST_ENABLED[i]     = (Data[j] < 3) ? Data[j] : false;
+		gEeprom.SCANLIST_PRIORITY_CH1[i] = Data[j + 1];
+		gEeprom.SCANLIST_PRIORITY_CH2[i] = Data[j + 2];
+	/*
+		// Verifique se o canal não é um canal de usuário
+		if (!IS_USER_CHANNEL(gEeprom.SCAN_LIST_PRIORITY_CH1[i])) {
+			gEeprom.SCANLIST_PRIORITY_CH1[i] = 0xFF;
+		}
 
-    if (!IS_USER_CHANNEL(gEeprom.SCAN_LIST_PRIORITY_CH2[i])) {
-        gEeprom.SCANLIST_PRIORITY_CH2[i] = 0xFF;
-    }
-	*/
-}
+		if (!IS_USER_CHANNEL(gEeprom.SCAN_LIST_PRIORITY_CH2[i])) {
+			gEeprom.SCANLIST_PRIORITY_CH2[i] = 0xFF;
+		}
+		*/
+	}
 
 //gEeprom.UNUSED_10 = 0xFF;
 
@@ -738,19 +738,20 @@ for (int i = 0; i < 2; i++) {
 	EEPROM_ReadBuffer(0x0D60, gMR_ChannelAttributes, sizeof(gMR_ChannelAttributes));
 
 	// 0F30..0F3F
-	//EEPROM_ReadBuffer(0x0F30, gCustomAesKey, sizeof(gCustomAesKey));
+	EEPROM_ReadBuffer(0x0F30, gCustomAesKey, sizeof(gCustomAesKey));	
 
-	#ifdef ENABLE_ENCRYPTION
-		// 0F30..0F3F - load encryption key
-		EEPROM_ReadBuffer(0x0F30, gEeprom.ENC_KEY, sizeof(gEeprom.ENC_KEY));
-	#endif
-
-	/*for (i = 0; i < 4; i++) {
+	for (uint8_t i = 0; i < 4; i++) {
 		if (gCustomAesKey[i] != 0xFFFFFFFFU) {
 			bHasCustomAesKey = true;
 			return;
 		}
-	}*/
+	}
+
+	#ifdef ENABLE_ENCRYPTION
+		// 1D20..1D2F - load encryption key
+		EEPROM_ReadBuffer(0x1D20, gEeprom.ENC_KEY, sizeof(gEeprom.ENC_KEY));
+	#endif
+
 #ifdef ENABLE_LIVESEEK_MHZ_KEYPAD
 	
 	//KD8CEC WORK ===================================
