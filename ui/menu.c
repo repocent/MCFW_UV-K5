@@ -38,7 +38,7 @@
 	#include "app/uart.h"
 #endif
 
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
 	#include "helper/crypto.h"
 #endif
 
@@ -70,19 +70,22 @@ static const char MenuList[][8] = {
     #ifdef ENABLE_LCD_INVERT_OPTION
     "Invert",
     #endif*/
-    #ifdef ENABLE_LCD_CONTRAST_OPTION
+#ifdef ENABLE_LCD_CONTRAST_OPTION
     "Contras",
-    #endif
+#endif
     // 0x10
     "DualRx",
     "XBand",
-#ifdef ENABLE_ENCRYPTION
-	  "EncKey",
-	  "MsgEnc",
+#ifdef ENABLE_MESSENGER_ENCRYPTION
+    "EncKey",
+	"MsgEnc",
 #endif
 #ifdef ENABLE_MESSENGER
-	  "MsgAck",
-	  "MsgMod",
+	"MsgAck",
+	"MsgMod",
+	#ifdef ENABLE_MESSENGER_ROGERBEEP_NOTIFICATION
+	"MsgRBN",
+	#endif	
 #endif    
     "Beep",
     "TxTime",
@@ -115,7 +118,7 @@ static const char MenuList[][8] = {
     "D List",    
 #endif
     "PonMsg",
-#if defined (ENABLE_ROGERBEEP) || defined (ENABLE_MDC)
+#if defined(ENABLE_ROGER_DEFAULT) || defined(ENABLE_ROGER_MOTOTRBO) || defined(ENABLE_ROGER_TPT) || defined(ENABLE_ROGER_MOTOTRBOT40) || defined(ENABLE_ROGER_MOTOTRBOTLKRT80) || defined(ENABLE_ROGER_ROGERCOBRAAM845) || defined(ENABLE_ROGER_POLICE_ITA) || defined(ENABLE_ROGER_UV5RC) || defined(ENABLE_ROGER_MARIO) || defined(ENABLE_MDC)
     "Roger",
 #endif	
     "Voltage",
@@ -211,48 +214,59 @@ static const char gSubMenu_PONMSG[3][5] = {
     "VOL",
 };
 
-#if defined(ENABLE_ROGERBEEP) && defined(ENABLE_MDC)
+#if defined(ENABLE_ROGER_DEFAULT) || defined(ENABLE_ROGER_MOTOTRBO) || defined(ENABLE_ROGER_TPT) || defined(ENABLE_ROGER_MOTOTRBOT40) || defined(ENABLE_ROGER_MOTOTRBOTLKRT80) || defined(ENABLE_ROGER_ROGERCOBRAAM845) || defined(ENABLE_ROGER_POLICE_ITA) || defined(ENABLE_ROGER_UV5RC) || defined(ENABLE_ROGER_MARIO) || defined(ENABLE_MDC)
 const char gSubMenu_ROGER[][9] = {
-    "OFF",
-    "DEFAULT",
-	"MOTOTRBO",
-    "MOTO TPT",
-	"MOTO T40",
-	"MOTO T80",
-	"C.AM845",
-	"POLIZIA", // Thanks to IU0PUW , Roger Beep Italy Police
-	"B.UV-5RC",
-	"MDC",
-};
+  "OFF",
 
-#elif defined (ENABLE_ROGERBEEP)
-const char gSubMenu_ROGER[][9] = {
-    "OFF",
-    "DEFAULT",
-	"MOTOTRBO",
-    "MOTO TPT",
-	"MOTO T40",
-	"MOTO T80",
-	"C.AM845",
-	"POLIZIA", // Thanks to IU0PUW , Roger Beep Italy Police
-	"B.UV-5RC",
-/*	"MARIO",*/
-};
 
-#ifdef ENABLE_MESSENGER
-	const char gSubMenu_MSG_MODULATION[][10] =
-	{
-		"AFSK 1.2K",
-		"FSK 700",
-    "FSK 450",
-		
-	};
+#ifdef ENABLE_ROGER_DEFAULT
+    "DEFAULT",
 #endif
 
-#elif defined (ENABLE_MDC)
-const char gSubMenu_ROGER[][4] = {
-	"OFF",
+#ifdef ENABLE_ROGER_MOTOTRBO
+    "MOTOTRBO",
+#endif
+
+#ifdef ENABLE_ROGER_TPT
+    "MOTO TPT",
+#endif
+
+#ifdef ENABLE_ROGER_MOTOTRBOT40
+    "MOTO T40",
+#endif
+
+#ifdef ENABLE_ROGER_MOTOTRBOTLKRT80
+    "MOTO T80",
+#endif
+
+#ifdef ENABLE_ROGER_ROGERCOBRAAM845
+    "C.AM845",
+#endif
+
+#ifdef ENABLE_ROGER_POLICE_ITA
+    "POLIZIA",
+#endif
+
+#ifdef ENABLE_ROGER_UV5RC
+    "B.UV-5RC",
+#endif
+
+#ifdef ENABLE_ROGER_MARIO
+    "MARIO",
+#endif
+
+#ifdef ENABLE_MDC
     "MDC",
+#endif
+
+};
+#endif
+
+#ifdef ENABLE_MESSENGER
+const char gSubMenu_MSG_MODULATION[3][10] = {
+    "AFSK 1.2K",
+    "FSK 700",
+    "FSK 450",
 };
 #endif
 
@@ -268,7 +282,7 @@ const char gSubMenuBacklight[8][7] = {"OFF",   "5 sec", "10 sec", "20 sec",
                                       "1 min", "2 min", "ON"};
 
 static const char *defaultEnableDisable[3] = {"DEFAULT", "ENABLE", "DISABLE"};
-static const char *offOn[3] = {"OFF", "ON"};
+static const char *offOn[2] = {"OFF", "ON"};
 static const char *upconverterFreqNames[7] = {"OFF", "50M", "70M", "106M", "125M", "140M", "200M"};
 bool gIsInSubMenu;
 
@@ -424,13 +438,16 @@ void UI_DisplayMenu(void) {
     break;
 
 #ifdef ENABLE_DOCK
-	case MENU_REMOTE_UI:
+  case MENU_REMOTE_UI:
 #endif
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
   case MENU_MSG_ENC:
 #endif
 #ifdef ENABLE_MESSENGER
-  case MENU_MSG_ACK:
+	#ifdef ENABLE_MESSENGER_ROGERBEEP_NOTIFICATION
+		case MENU_MSG_NOTIFICATION:
+	#endif
+  case MENU_MSG_ACK:	
 #endif
   case MENU_BCL:
   case MENU_BEEP:
@@ -501,6 +518,8 @@ void UI_DisplayMenu(void) {
     sprintf(String, "LIST%d", gSubMenuSelection);
     break;
 */
+
+/*
 case MENU_S_LIST:
 	//		strcpy(str, "SCAN LIST\n");
 			if (gSubMenuSelection < 2)
@@ -509,6 +528,17 @@ case MENU_S_LIST:
 			else
 				sprintf(String, "ALL");
 			break;
+      */
+     case MENU_S_LIST:
+    if (gSubMenuSelection == 3) {
+        sprintf(String, "LIST1+2");
+    } else if (gSubMenuSelection < 2) {
+        sprintf(String, "LIST%d", 1 + gSubMenuSelection);
+    } else {
+        sprintf(String, "ALL");
+    }
+    break;
+
 #ifdef ENABLE_DTMF_CALLING
 			
   case MENU_ANI_ID:
@@ -553,7 +583,7 @@ case MENU_S_LIST:
   case MENU_PONMSG:
     strcpy(String, gSubMenu_PONMSG[gSubMenuSelection]);
     break;
-#if defined (ENABLE_ROGERBEEP) || defined (ENABLE_MDC)
+#if defined(ENABLE_ROGER_DEFAULT) || defined(ENABLE_ROGER_MOTOTRBO) || defined(ENABLE_ROGER_TPT) || defined(ENABLE_ROGER_MOTOTRBOT40) || defined(ENABLE_ROGER_MOTOTRBOTLKRT80) || defined(ENABLE_ROGER_ROGERCOBRAAM845) || defined(ENABLE_ROGER_POLICE_ITA) || defined(ENABLE_ROGER_UV5RC) || defined(ENABLE_ROGER_MARIO) || defined(ENABLE_MDC)
   case MENU_ROGER:
     strcpy(String, gSubMenu_ROGER[gSubMenuSelection]);
     break;
@@ -588,7 +618,7 @@ case MENU_S_LIST:
     strcpy(String, gSubMenu_F_LOCK[gSubMenuSelection]);
     break;
 
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
 				case MENU_ENC_KEY:
 				{
           //const unsigned int menu_item_x1    =  50;
@@ -631,7 +661,12 @@ case MENU_S_LIST:
 
 			#ifdef ENABLE_MESSENGER
 				case MENU_MSG_MODULATION:
+          //if not in range, reset it to default
+          if(!(gSubMenuSelection>=0 && gSubMenuSelection<ARRAY_SIZE(gSubMenu_MSG_MODULATION))){
+            gSubMenuSelection=0;
+          }
 					strcpy(String, gSubMenu_MSG_MODULATION[gSubMenuSelection]);
+          //sprintf(String,"%x",gSubMenuSelection);
 					break;
 			#endif
   }
@@ -645,7 +680,7 @@ case MENU_S_LIST:
 
   if ((gMenuCursor == MENU_RESET || gMenuCursor == MENU_MEM_CH ||
        gMenuCursor == MENU_DEL_CH
-        #ifdef ENABLE_ENCRYPTION
+        #ifdef ENABLE_MESSENGER_ENCRYPTION
           || gMenuCursor == MENU_ENC_KEY
         #endif
        ) &&

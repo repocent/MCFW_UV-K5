@@ -22,6 +22,12 @@ void UI_DisplayMSG(void) {
 	static char String[37];
 
 	UI_DisplayClear();
+	if (gEeprom.KEY_LOCK && gKeypadLocked) {
+    UI_PrintString("Long Press #", 0, 127, 1, 8, true);
+    UI_PrintString("To Unlock", 0, 127, 3, 8, true);
+    ST7565_BlitFullScreen();
+    return;
+  }
 	memset(String, 0, sizeof(String));
 #ifndef ENABLE_MESSENGER_MORE_ONE_LINE
 	UI_PrintStringSmallBold("MESSENGER", 0, 127, 0);
@@ -59,11 +65,11 @@ void UI_DisplayMSG(void) {
 
 	// TX Screen
 #if defined (ENABLE_MESSENGER_SHOW_RX_FREQ) && ! defined (ENABLE_MESSENGER_SHOW_RX_TX_FREQ)
-	UI_DrawDottedLineBuffer(gFrameBuffer, 80, 42, 126, 40, true, 4);
+	UI_DrawDottedLineBuffer(gFrameBuffer, 80, 42, 126, 42, true, 4);
 #elif defined (ENABLE_MESSENGER_SHOW_RX_TX_FREQ) && ! defined (ENABLE_MESSENGER_SHOW_RX_FREQ) || defined (ENABLE_MESSENGER_SHOW_RX_TX_FREQ) && defined (ENABLE_MESSENGER_SHOW_RX_FREQ)
-//	UI_DrawDottedLineBuffer(gFrameBuffer, 80, 42, 126, 40, true, 4);
+//	UI_DrawDottedLineBuffer(gFrameBuffer, 80, 42, 126, 42, true, 4);
 #else
-	UI_DrawDottedLineBuffer(gFrameBuffer, 14, 42, 126, 40, true, 4);
+	UI_DrawDottedLineBuffer(gFrameBuffer, 14, 42, 126, 42, true, 4);
 #endif
 	memset(String, 0, sizeof(String));
 	if ( keyboardType == NUMERIC ) {

@@ -24,11 +24,12 @@
 #endif
 #include "misc.h"
 #include "settings.h"
+#include "driver/system.h"
 #ifdef ENABLE_LIVESEEK_MHZ_KEYPAD
 #include "app/ceccommon.h"
 #endif
 
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
 	#include "helper/crypto.h"
 #endif
 
@@ -81,19 +82,25 @@ void SETTINGS_SaveVfoIndices(void)
 	EEPROM_WriteBuffer(0x0E80, State);
 }
 
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
 void SETTINGS_SaveEncryptionKey()
 {	
-	EEPROM_WriteBuffer(0x1D20, gEeprom.ENC_KEY);
-	EEPROM_WriteBuffer(0x1D28, gEeprom.ENC_KEY + 8);
-	gRecalculateEncKey = true;
+
+//	EEPROM_WriteBuffer(0x0F30, gEeprom.ENC_KEY);
+//	EEPROM_WriteBuffer(0x0F38, gEeprom.ENC_KEY + 8);
+//	gRecalculateEncKey = true;
+		
+EEPROM_WriteBufferMCFW(0x1BBA, gEeprom.ENC_KEY, 5);
+EEPROM_WriteBufferMCFW(0x1BCA, gEeprom.ENC_KEY + 5, 5);
+gRecalculateEncKey = true;
+
 }
 #endif
 
 void SETTINGS_SaveSettings(void)
 {
 	uint8_t State[8];
-	uint32_t Password[2];
+//	uint32_t Password[2];
 
 #if defined(ENABLE_UART)
 	UART_LogSend("spub\r\n", 6);
@@ -136,22 +143,25 @@ void SETTINGS_SaveSettings(void)
 
 	EEPROM_WriteBuffer(0x0E90, State);
 
-	memset(Password, 0xFF, sizeof(Password));
+	//memset(Password, 0xFF, sizeof(Password));
 
-	Password[0] = gEeprom.POWER_ON_PASSWORD;
+	//Password[0] = gEeprom.POWER_ON_PASSWORD;
 
-	EEPROM_WriteBuffer(0x0E98, State);
+	//EEPROM_WriteBuffer(0x0E98, State);
 
-	memset(State, 0xFF, sizeof(State));
+	
 
 	State[0] = gEeprom.VOICE_PROMPT;
-	#ifdef ENABLE_MESSENGER
-	State[3] = gEeprom.MESSENGER_CONFIG.__val;
-	#endif
 	EEPROM_WriteBuffer(0x0EA0, State);
 
+	#ifdef ENABLE_MESSENGER
+	memset(State, 0xFF, sizeof(State));
+	State[0] = gEeprom.MESSENGER_CONFIG.__val;
+	#endif
+	EEPROM_WriteBufferMCFW(0x1BAA, State, 5);
+
 	State[0] = 0xFF;
-#if defined (ENABLE_ROGERBEEP) || defined (ENABLE_MDC)
+#if defined(ENABLE_ROGER_DEFAULT) || defined(ENABLE_ROGER_MOTOTRBO) || defined(ENABLE_ROGER_TPT) || defined(ENABLE_ROGER_MOTOTRBOT40) || defined(ENABLE_ROGER_MOTOTRBOTLKRT80) || defined(ENABLE_ROGER_ROGERCOBRAAM845) || defined(ENABLE_ROGER_POLICE_ITA) || defined(ENABLE_ROGER_UV5RC) || defined(ENABLE_ROGER_MARIO) || defined(ENABLE_MDC)
 	State[1] = gEeprom.ROGER;
 #endif
 	State[2] = gEeprom.REPEATER_TAIL_TONE_ELIMINATION;
@@ -216,7 +226,7 @@ void SETTINGS_SaveSettings(void)
 	//END OF KD8CEC WORK ============================		
 #endif	
 	
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
 	SETTINGS_SaveEncryptionKey();
 #endif
 

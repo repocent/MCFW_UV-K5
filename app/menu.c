@@ -114,7 +114,7 @@ int MENU_GetLimits(uint8_t Cursor, uint8_t *pMin, uint8_t *pMax) {
     //*pMin = 0;
     *pMax = 2;
     break;
-#if defined (ENABLE_ROGERBEEP) || defined (ENABLE_MDC)	
+#if defined(ENABLE_ROGER_DEFAULT) || defined(ENABLE_ROGER_MOTOTRBO) || defined(ENABLE_ROGER_TPT) || defined(ENABLE_ROGER_MOTOTRBOT40) || defined(ENABLE_ROGER_MOTOTRBOTLKRT80) || defined(ENABLE_ROGER_ROGERCOBRAAM845) || defined(ENABLE_ROGER_POLICE_ITA) || defined(ENABLE_ROGER_UV5RC) || defined(ENABLE_ROGER_MARIO) || defined(ENABLE_MDC)
   case MENU_ROGER:
     //*pMin = 0;
 	*pMax = ARRAY_SIZE(gSubMenu_ROGER) - 1;
@@ -153,12 +153,16 @@ int MENU_GetLimits(uint8_t Cursor, uint8_t *pMin, uint8_t *pMax) {
   case MENU_200TX:
   case MENU_500TX:
   case MENU_SCREN:
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
 		case MENU_MSG_ENC:
 #endif
+#if defined (ENABLE_MESSENGER) && defined(ENABLE_MESSENGER_ROGERBEEP_NOTIFICATION)
+		case MENU_MSG_NOTIFICATION:
+#endif	
 #ifdef ENABLE_MESSENGER
 		case MENU_MSG_ACK:
-#endif  
+#endif
+	
     //*pMin = 0;
     *pMax = 1;
     break;
@@ -210,7 +214,7 @@ int MENU_GetLimits(uint8_t Cursor, uint8_t *pMin, uint8_t *pMax) {
     break;
   case MENU_S_LIST:
     //*pMin = 0;
-    *pMax = 2;
+    *pMax = 3;
     break;
 #ifdef ENABLE_DTMF_CALLING
   case MENU_D_RSP:
@@ -505,7 +509,7 @@ void MENU_AcceptSetting(void) {
     gEeprom.POWER_ON_DISPLAY_MODE = gSubMenuSelection;
     break;
 
-#if defined (ENABLE_ROGERBEEP) || defined (ENABLE_MDC)
+#if defined(ENABLE_ROGER_DEFAULT) || defined(ENABLE_ROGER_MOTOTRBO) || defined(ENABLE_ROGER_TPT) || defined(ENABLE_ROGER_MOTOTRBOT40) || defined(ENABLE_ROGER_MOTOTRBOTLKRT80) || defined(ENABLE_ROGER_ROGERCOBRAAM845) || defined(ENABLE_ROGER_POLICE_ITA) || defined(ENABLE_ROGER_UV5RC) || defined(ENABLE_ROGER_MARIO) || defined(ENABLE_MDC)
   case MENU_ROGER:
     gEeprom.ROGER = gSubMenuSelection;
     break;
@@ -569,7 +573,8 @@ void MENU_AcceptSetting(void) {
     gFlagReconfigureVfos = true;
     return;
 
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER
+	#ifdef ENABLE_MESSENGER_ENCRYPTION
 			case MENU_ENC_KEY:
 				memset(gEeprom.ENC_KEY, 0, sizeof(gEeprom.ENC_KEY));
 				memmove(gEeprom.ENC_KEY, edit, sizeof(gEeprom.ENC_KEY));
@@ -580,19 +585,22 @@ void MENU_AcceptSetting(void) {
 			case MENU_MSG_ENC:
 				gEeprom.MESSENGER_CONFIG.data.encrypt = gSubMenuSelection;
 				break;
-		#endif
+	#endif
 
-		#ifdef ENABLE_MESSENGER
-
+		
+			#ifdef ENABLE_MESSENGER_ROGERBEEP_NOTIFICATION
+				case MENU_MSG_NOTIFICATION:
+				gEeprom.MESSENGER_CONFIG.data.notification = gSubMenuSelection;
+				break;
+			#endif
 			case MENU_MSG_ACK:
 				gEeprom.MESSENGER_CONFIG.data.ack = gSubMenuSelection;
 				break;
 
 			case MENU_MSG_MODULATION:
 				gEeprom.MESSENGER_CONFIG.data.modulation = gSubMenuSelection;
-				break;
-		#endif    
-
+				break;   
+#endif
   default:
     return;
   }
@@ -877,7 +885,7 @@ void MENU_ShowCurrentSetting(void) {
   case MENU_PONMSG:
     gSubMenuSelection = gEeprom.POWER_ON_DISPLAY_MODE;
     break;
-#if defined (ENABLE_ROGERBEEP) || defined (ENABLE_MDC)
+#if defined(ENABLE_ROGER_DEFAULT) || defined(ENABLE_ROGER_MOTOTRBO) || defined(ENABLE_ROGER_TPT) || defined(ENABLE_ROGER_MOTOTRBOT40) || defined(ENABLE_ROGER_MOTOTRBOTLKRT80) || defined(ENABLE_ROGER_ROGERCOBRAAM845) || defined(ENABLE_ROGER_POLICE_ITA) || defined(ENABLE_ROGER_UV5RC) || defined(ENABLE_ROGER_MARIO) || defined(ENABLE_MDC)
   case MENU_ROGER:
     gSubMenuSelection = gEeprom.ROGER;
     break;
@@ -924,22 +932,26 @@ void MENU_ShowCurrentSetting(void) {
   case MENU_SCREN:
     gSubMenuSelection = gSetting_ScrambleEnable;
     break;
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER	
+#ifdef ENABLE_MESSENGER_ENCRYPTION
 			case MENU_MSG_ENC:
 				gSubMenuSelection = gEeprom.MESSENGER_CONFIG.data.encrypt;
 				break;
-		#endif
+#endif
 
-		#ifdef ENABLE_MESSENGER
-
+		
 			case MENU_MSG_ACK:
 				gSubMenuSelection = gEeprom.MESSENGER_CONFIG.data.ack;
 				break;
-
 			case MENU_MSG_MODULATION:
 				gSubMenuSelection = gEeprom.MESSENGER_CONFIG.data.modulation;
 				break;
-		#endif
+			#ifdef ENABLE_MESSENGER_ROGERBEEP_NOTIFICATION
+				case MENU_MSG_NOTIFICATION:
+				gSubMenuSelection = gEeprom.MESSENGER_CONFIG.data.notification;
+				break;
+			#endif				
+#endif
         
 #ifdef ENABLE_STATUS_BATTERY_PERC	
   case MENU_BATTYP:
@@ -986,6 +998,7 @@ static void MENU_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     }
     gInputBoxIndex = 0;
   } else {
+	#ifdef ENABLE_MESSENGER_ENCRYPTION	  
     if (edit_index != -1 && gMenuCursor == MENU_ENC_KEY) {
       if (edit_index < 10)
       {
@@ -1004,6 +1017,7 @@ static void MENU_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       }
       return;
     }
+	#endif
     if (gMenuCursor == MENU_OFFSET) {
       uint32_t Frequency;
 
@@ -1107,7 +1121,7 @@ static void MENU_Key_MENU(bool bKeyPressed, bool bKeyHeld) {
 
     } else {
 
-      #ifdef ENABLE_ENCRYPTION
+      #ifdef ENABLE_MESSENGER_ENCRYPTION
         if (gMenuCursor == MENU_ENC_KEY)
         {
           if (edit_index < 0)
@@ -1135,7 +1149,7 @@ static void MENU_Key_MENU(bool bKeyPressed, bool bKeyHeld) {
 
       if (gMenuCursor == MENU_RESET || gMenuCursor == MENU_MEM_CH ||
           gMenuCursor == MENU_DEL_CH
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
           || gMenuCursor == MENU_ENC_KEY
 #endif
           ) {
@@ -1196,7 +1210,7 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld,
   uint8_t Channel;
   bool bCheckScanList;
 
-  #ifdef ENABLE_ENCRYPTION
+  #ifdef ENABLE_MESSENGER_ENCRYPTION
 
   if (gIsInSubMenu && edit_index >= 0 && gMenuCursor == MENU_ENC_KEY )
 	{	// change the character
@@ -1321,7 +1335,7 @@ void MENU_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
     MENU_Key_STAR(bKeyPressed, bKeyHeld);
     break;
   case KEY_F:
-#ifdef ENABLE_ENCRYPTION  
+#ifdef ENABLE_MESSENGER_ENCRYPTION  
     if (edit_index >= 0 && gMenuCursor == MENU_ENC_KEY ) {
       if (!bKeyHeld && bKeyPressed)
       {

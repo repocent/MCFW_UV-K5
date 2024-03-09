@@ -42,6 +42,13 @@ bool              gLowBatteryConfirmed;
 uint16_t          gBatteryCheckCounter;
 volatile uint16_t gBatterySave;
 
+#define OVERVOLTAGE_THRESHOLD  890
+#define BATTERY_OVERVOLTAGE    7
+#define CRITICAL_THRESHOLD     630
+#define BATTERY_CRITICAL       0
+#define CHARGING_THRESHOLD     501
+#define LOW_BATTERY_THRESHOLD  2
+
 
 typedef enum {
 	BATTERY_LOW_INACTIVE,
@@ -64,7 +71,6 @@ const uint16_t Voltage2PercentageTable[][7][2] = {
 		{760, 25 },
 		{729, 6  },
 		{630, 0  },
-		{0,   0  },
 		{0,   0  },
 	},
 
@@ -100,7 +106,7 @@ unsigned int BATTERY_VoltsToPercent(const unsigned int voltage_10mV)
 #endif
 
 
-void BATTERY_GetReadings(bool bDisplayBatteryLevel)
+/*void BATTERY_GetReadings(bool bDisplayBatteryLevel)
 {
     uint16_t Voltage = (gBatteryVoltages[0] + gBatteryVoltages[1] + gBatteryVoltages[2] + gBatteryVoltages[3]) / 4;
     uint8_t PreviousBatteryLevel = gBatteryDisplayLevel;
@@ -132,7 +138,7 @@ void BATTERY_GetReadings(bool bDisplayBatteryLevel)
     }
 }
 //////2
-/*
+
 void BATTERY_GetReadings(bool bDisplayBatteryLevel)
 {
 	uint16_t Voltage = (gBatteryVoltages[0] + gBatteryVoltages[1] + gBatteryVoltages[2] + gBatteryVoltages[3]) / 4;
@@ -173,6 +179,7 @@ void BATTERY_GetReadings(bool bDisplayBatteryLevel)
 	}
 }
 */
+
 ////2
 /*
 void BATTERY_GetReadings(bool bDisplayBatteryLevel)
@@ -232,6 +239,7 @@ void BATTERY_GetReadings(bool bDisplayBatteryLevel)
 }
 */
 ////1
+
 /*
 void BATTERY_GetReadings(bool bDisplayBatteryLevel) {
   uint8_t PreviousBatteryLevel = gBatteryDisplayLevel;
@@ -242,7 +250,7 @@ void BATTERY_GetReadings(bool bDisplayBatteryLevel) {
   for (int i = ARRAY_SIZE(gBatteryCalibration) - 1; i >= 0; --i) {
     if (Voltage > gBatteryCalibration[i]) {
   // old config gBatteryDisplayLevel = i + 1;		
-      gBatteryDisplayLevel = i + 1;
+      gBatteryDisplayLevel = i + 3/5;
       break;
     }
   }
@@ -256,7 +264,7 @@ void BATTERY_GetReadings(bool bDisplayBatteryLevel) {
     }
     gChargingWithTypeC = false;
   } else {
-    if (!gChargingWithTypeC) {
+    if (gChargingWithTypeC) {
       gUpdateStatus = true;
       BACKLIGHT_TurnOn();
     }
@@ -274,5 +282,116 @@ void BATTERY_GetReadings(bool bDisplayBatteryLevel) {
     gLowBatteryCountdown = 0;
   }
 }
+
 */
 
+void BATTERY_GetReadings(const bool bDisplayBatteryLevel)
+{
+	const uint8_t  PreviousBatteryLevel = gBatteryDisplayLevel;
+	const uint16_t Voltage              = (gBatteryVoltages[0] + gBatteryVoltages[1] + gBatteryVoltages[2] + gBatteryVoltages[3]) / 4;
+
+	
+
+	gBatteryVoltageAverage = (Voltage * 760) / gBatteryCalibration[3];
+
+	if(gBatteryVoltageAverage > 890)
+		gBatteryDisplayLevel = 7; // battery overvoltage
+	else if(gBatteryVoltageAverage < 630)
+		gBatteryDisplayLevel = 0; // battery critical
+	else {
+		gBatteryDisplayLevel = 1;
+		const uint8_t levels[] = {5,30,60,80,100};
+		uint8_t perc = BATTERY_VoltsToPercent(gBatteryVoltageAverage);
+		for(uint8_t i = 6; i >= 1; i--){
+			if (perc > levels[i-2]) {
+				gBatteryDisplayLevel = i;
+				break;
+			}
+		}	
+	}
+
+
+	if (gScreenToDisplay == DISPLAY_MENU && gMenuCursor == MENU_VOL)
+        gUpdateDisplay = true;
+
+if (gBatteryCurrent < 501) {
+		if (gChargingWithTypeC) {
+			gUpdateStatus = true;
+		}
+		gChargingWithTypeC = 0;
+	} else {
+		if (!gChargingWithTypeC) {
+			gUpdateStatus = true;
+			BACKLIGHT_TurnOn();
+		}
+		gChargingWithTypeC = 1;
+	}
+
+
+
+    if (PreviousBatteryLevel != gBatteryDisplayLevel) {
+        gLowBattery = (gBatteryDisplayLevel < 2);
+        gLowBatteryCountdown = 0;
+        if (!gLowBattery && bDisplayBatteryLevel)
+            UI_DisplayBattery(gBatteryDisplayLevel);
+    }
+}
+/*
+void BATTERY_GetReadings(bool bDisplayBatteryLevel) {
+    uint8_t PreviousBatteryLevel = gBatteryDisplayLevel; 
+    // Calcula a média das voltagens da bateria
+    const uint16_t Voltage = (gBatteryVoltages[0] + gBatteryVoltages[1] + gBatteryVoltages[2] + gBatteryVoltages[3]) / 4;
+    
+    // Calcula a média da voltagem ajustada
+    gBatteryVoltageAverage = (Voltage * 760) / gBatteryCalibration[3];
+
+    // Verifica o nível de bateria com base na voltagem média
+    if(gBatteryVoltageAverage > OVERVOLTAGE_THRESHOLD)
+        gBatteryDisplayLevel = BATTERY_OVERVOLTAGE;
+    else if(gBatteryVoltageAverage < CRITICAL_THRESHOLD)
+        gBatteryDisplayLevel = BATTERY_CRITICAL;
+    else {
+        // Calcula o nível de bateria com base na porcentagem de voltagem média
+        gBatteryDisplayLevel = 1;
+        const uint8_t batteryLevels[] = {5, 25, 50, 75, 88};
+        uint8_t percentage = BATTERY_VoltsToPercent(gBatteryVoltageAverage);
+        for(uint8_t i = 6; i >= 1; i--) {
+            if (percentage > batteryLevels[i-2]) {
+                gBatteryDisplayLevel = i;
+                break;
+            }
+        }
+    }
+
+    // Verifica se o menu de exibição está ativo para atualização
+    if ((gScreenToDisplay == DISPLAY_MENU) && (gMenuCursor == MENU_VOL))
+        gUpdateDisplay = true;
+    
+    // Verifica o status de carregamento e atualiza conforme necessário
+    if (gBatteryCurrent < CHARGING_THRESHOLD) {
+        if (gChargingWithTypeC)
+            gUpdateStatus = true;
+        gChargingWithTypeC = false;
+    } else {
+        if (!gChargingWithTypeC) {
+            gUpdateStatus = true;
+            BACKLIGHT_TurnOn();
+        }
+        gChargingWithTypeC = true;
+    }
+
+    // Verifica se houve mudanças no nível de bateria e atualiza os estados correspondentes
+    if (PreviousBatteryLevel != gBatteryDisplayLevel) {
+        if(gBatteryDisplayLevel > LOW_BATTERY_THRESHOLD)
+            gLowBatteryConfirmed = false;
+        else if (gBatteryDisplayLevel < LOW_BATTERY_THRESHOLD)
+            gLowBattery = true;
+        else {
+            gLowBattery = false;
+            if (bDisplayBatteryLevel)
+                UI_DisplayBattery(gBatteryDisplayLevel);
+        }
+        gLowBatteryCountdown = 0;
+    }
+}
+*/

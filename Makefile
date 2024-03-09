@@ -4,78 +4,105 @@
 
 TARGET = firmware
 
+
 #======== STOCK QUANSHENG FERATURES ========#
 ENABLE_AIRCOPY 							:= 0
 # 3856 bytes
-ENABLE_FMRADIO							:= 0
+ENABLE_FMRADIO							:= 1
 # 84 bytes
-ENABLE_FLASHLIGHT_SOS       			:= 0
+ENABLE_FLASHLIGHT_SOS       			:= 1
 ENABLE_UART                 			:= 1
 ENABLE_UART_CAT             			:= 0
 # Bause we can cut more... - 4108 bytes
 ENABLE_DTMF_CALLING         			:= 0
+#DTMF REMOTEKILL
+ENABLE_REMOTEKILL						:= 0
 # 1750Hz & 1050Hz FN1 FN2 Tones
 ENABLE_DTMF_SIDETONES				    := 1
 ENABLE_TX1750 							:= 0
 # Keep this in stock options, and add option in mods for extra rogers
-ENABLE_ROGERBEEP            			:= 1
+ENABLE_ROGER_DEFAULT					:= 0
+ENABLE_ROGER_MOTOTRBO					:= 0
+ENABLE_ROGER_TPT						:= 0
+ENABLE_ROGER_MOTOTRBOT40				:= 0
+ENABLE_ROGER_MOTOTRBOTLKRT80			:= 0
+ENABLE_ROGER_ROGERCOBRAAM845			:= 1
+ENABLE_ROGER_POLICE_ITA					:= 0
+ENABLE_ROGER_UV5RC						:= 0
+ENABLE_ROGER_MARIO						:= 0
 ENABLE_MDC                  			:= 0
 
 #============== MODIFICATIONS =============#
 # AM Modulation Fix - 544 bytes
-ENABLE_AM_FIX 							:= 1
+ENABLE_AM_FIX 								:= 1
 # Apply fix to Spectrum - 40 bytes
-ENABLE_AM_FIX_ON_SPECTRUM				:= 1
-ENABLE_SQUELCH_MORE_SENSITIVE			:= 1
+ENABLE_AM_FIX_ON_SPECTRUM					:= 1
+ENABLE_SQUELCH_MORE_SENSITIVE				:= 0
 # Restore FM in 1 second after RX - 0 bytes
-ENABLE_FMRADIO_FAST_RESTORE 			:= 1
+ENABLE_FMRADIO_FAST_RESTORE 				:= 1
+# Scan List Editor
+ENABLE_SCANLIST								:= 1
+
+# Battery percentage at the Welcome Message - 12 bytes
+ENABLE_VOLTAGE_PERCENTAGE_WELCOME_MESSAGE	:= 1
 # Battery percentage - 296 bytes
-ENABLE_STATUS_BATTERY_PERC  			:= 1
+ENABLE_STATUS_BATTERY_PERC 		 			:= 1
 # Show current while charging - 136 bytes Thanks Tunas1337
-ENABLE_BATTERY_CHARGING					:= 0
+ENABLE_BATTERY_CHARGING						:= 1
 # Invert LCD Colors
-ENABLE_LCD_INVERT_OPTION				:= 0 
-#ENABLE_LCD_CONTRAST_OPTION 		 	:= 0 # WIP
+ENABLE_LCD_INVERT_OPTION					:= 0 
+#ENABLE_LCD_CONTRAST_OPTION 			 	:= 0 # WIP
 # Mic Gain Bar while TXing - 255 bytes
-ENABLE_MIC_PLUS_GAIN_BAR_TX 			:= 1 
-ENABLE_NOSCANTIMEOUT        			:= 1
-ENABLE_KEEPNAMEONSAVE       			:= 1
-ENABLE_FASTER_CHANNEL_SCAN  			:= 1
+ENABLE_MIC_PLUS_GAIN_BAR_TX 				:= 1
+# Enable Vox 1920ms(max) delay - 0 bytes
+ENABLE_VOX_MAX_DELAY						:= 1
+ENABLE_NOSCANTIMEOUT    	    			:= 1
+ENABLE_KEEPNAMEONSAVE       				:= 1
+ENABLE_FASTER_CHANNEL_SCAN  				:= 1
+# Enable Timeout beep at the end of timeout - 44 bytes
+ENABLE_TIMEOUT_ROGERBEEP_NOTIFICATION		:= 1
 # CW Modulation
-ENABLE_CW                   			:= 1
+ENABLE_CW                   				:= 0
 
-#============ EXTRA: MESSENGER ============# 
-ENABLE_MESSENGER            			:= 1
-ENABLE_MESSENGER_MORE_ONE_LINE			:= 1
+#=============== EXTRA: MESSENGER ===============# 
+ENABLE_MESSENGER            				:= 1
+ENABLE_MESSENGER_MORE_ONE_LINE				:= 0
 # 124 bytes
-ENABLE_MESSENGER_SHOW_RX_FREQ			:= 1
+ENABLE_MESSENGER_SHOW_RX_FREQ				:= 1
 # 124 (+20) bytes
-ENABLE_MESSENGER_SHOW_RX_TX_FREQ		:= 1
+ENABLE_MESSENGER_SHOW_RX_TX_FREQ			:= 0
 # 156 bytes
-ENABLE_MESSENGER_UART					:= 1
-ENABLE_ENCRYPTION                       := 1
+ENABLE_MESSENGER_UART						:= 1
+# 3408 bytes
+ENABLE_MESSENGER_ENCRYPTION             	:= 1
+# 140 bytes
+ENABLE_MESSENGER_ROGERBEEP_NOTIFICATION 	:= 1
 
-# ---- EXTRA: SPECTRUM ----
-ENABLE_SPECTRUM             			:= 0
-ENABLE_SPECTRUM_NUNU           			:= 0
-SPECTRUM_AUTOMATIC_SQUELCH  			:= 1
-SPECTRUM_EXTRA_VALUES       			:= 1
-ENABLE_ALL_REGISTERS        			:= 0
-ENABLE_MATOZ_KEYS           			:= 1
+# -------------- EXTRA: SPECTRUM --------------
+ENABLE_SPECTRUM            		 			:= 1
+ENABLE_SPECTRUM_NUNU           				:= 0
+SPECTRUM_AUTOMATIC_SQUELCH  				:= 1
+SPECTRUM_EXTRA_VALUES       				:= 1
+# 3568 bytes
+ENABLE_ALL_REGISTERS        				:= 0
+# 0 bytes
+ENABLE_MATOZ_KEYS           				:= 1
 
 # https://github.com/nicsure/QuanshengDock
 # ---- EXTRA: DOCK ----
 # 2204 bytes
-ENABLE_DOCK                   			:= 0
+ENABLE_DOCK 	                  			:= 0
 
 #Thanks to KD8CEC for sharing his code / We have to check the code better, i just code & paste it to the right places...
-ENABLE_LIVESEEK_MHZ_KEYPAD				:= 0
+# 1476 bytes
+ENABLE_LIVESEEK_MHZ_KEYPAD					:= 0
+
 
 # ---- DEBUGGING ----
 # ---- COMPILER/LINKER OPTIONS ----
-ENABLE_OVERLAY 							:= 0
-ENABLE_SWD 								:= 0
-
+ENABLE_COMPRESS								:= 1
+ENABLE_OVERLAY 								:= 0
+ENABLE_SWD 									:= 0
 
 
 
@@ -143,6 +170,9 @@ OBJS += app/action.o
 ifeq ($(ENABLE_AM_FIX),1)
 OBJS += am_fix.o
 endif
+ifeq ($(ENABLE_AM_FIX_ON_SPECTRUM),1)
+OBJS += am_fix.o
+endif
 ifeq ($(ENABLE_AIRCOPY),1)
 OBJS += app/aircopy.o
 endif
@@ -163,10 +193,13 @@ endif
 ifeq ($(ENABLE_SPECTRUM_NUNU), 1)
 OBJS += app/spectrumnunu.o
 endif
-
 ifeq ($(ENABLE_UART),1)
 OBJS += app/uart.o
 endif
+ifeq ($(ENABLE_SCANLIST),1)
+OBJS += apps/scanlist.o
+endif
+
 OBJS += audio.o
 OBJS += bitmaps.o
 OBJS += board.o
@@ -191,7 +224,7 @@ endif
 ifeq ($(ENABLE_MESSENGER),1)
 	OBJS += ui/messenger.o
 endif
-ifeq ($(ENABLE_ENCRYPTION),1)
+ifeq ($(ENABLE_MESSENGER_ENCRYPTION),1)
 	OBJS += external/chacha/chacha.o
 	OBJS += helper/crypto.o
 endif
@@ -209,7 +242,6 @@ OBJS += ui/scanner.o
 OBJS += ui/status.o
 OBJS += ui/ui.o
 OBJS += ui/welcome.o
-OBJS += apps/scanlist.o
 OBJS += version.o
 OBJS += main.o
 
@@ -266,6 +298,10 @@ endif
 CFLAGS = -Os -Wall -Werror -mcpu=cortex-m0 -fno-delete-null-pointer-checks -std=c11 -MMD
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
+ifeq ($(ENABLE_COMPRESS),1)
+CFLAGS += --specs=nano.specs
+CFLAGS += -flto
+endif
 
 ifeq ($(ENABLE_DOCK),1)
 	CFLAGS += -DENABLE_DOCK
@@ -279,11 +315,17 @@ endif
 ifeq ($(ENABLE_DTMF_CALLING),1)
 	CFLAGS += -DENABLE_DTMF_CALLING
 endif
+ifeq ($(ENABLE_REMOTEKILL),1)
+	CFLAGS += -DENABLE_REMOTEKILL
+endif
 ifeq ($(ENABLE_DTMF_SIDETONES),1)
 	CFLAGS += -DENABLE_DTMF_SIDETONES
 endif
 ifeq ($(ENABLE_MIC_PLUS_GAIN_BAR_TX),1)
 	CFLAGS += -DENABLE_MIC_PLUS_GAIN_BAR_TX
+endif
+ifeq ($(ENABLE_VOX_MAX_DELAY),1)
+	CFLAGS  += -DENABLE_VOX_MAX_DELAY
 endif
 ifeq ($(ENABLE_FLASHLIGHT_SOS),1)
 	CFLAGS  += -DENABLE_FLASHLIGHT_SOS
@@ -303,8 +345,35 @@ endif
 ifeq ($(ENABLE_FMRADIO_FAST_RESTORE),1)
 	CFLAGS += -DENABLE_FMRADIO_FAST_RESTORE
 endif
-ifeq ($(ENABLE_ROGERBEEP),1)
-	CFLAGS += -DENABLE_ROGERBEEP
+ifeq ($(ENABLE_TIMEOUT_ROGERBEEP_NOTIFICATION),1)
+	CFLAGS += -DENABLE_TIMEOUT_ROGERBEEP_NOTIFICATION
+endif
+ifeq ($(ENABLE_ROGER_DEFAULT),1)
+	CFLAGS += -DENABLE_ROGER_DEFAULT
+endif
+ifeq ($(ENABLE_ROGER_MOTOTRBO),1)
+	CFLAGS += -DENABLE_ROGER_MOTOTRBO
+endif
+ifeq ($(ENABLE_ROGER_TPT),1)
+	CFLAGS += -DENABLE_ROGER_TPT
+endif
+ifeq ($(ENABLE_ROGER_MOTOTRBOT40),1)
+	CFLAGS += -DENABLE_ROGER_MOTOTRBOT40
+endif
+ifeq ($(ENABLE_ROGER_MOTOTRBOTLKRT80),1)
+	CFLAGS += -DENABLE_ROGER_MOTOTRBOTLKRT80
+endif
+ifeq ($(ENABLE_ROGER_ROGERCOBRAAM845),1)
+	CFLAGS += -DENABLE_ROGER_ROGERCOBRAAM845
+endif
+ifeq ($(ENABLE_ROGER_POLICE_ITA),1)
+	CFLAGS += -DENABLE_ROGER_POLICE_ITA
+endif
+ifeq ($(ENABLE_ROGER_UV5RC),1)
+	CFLAGS += -DENABLE_ROGER_UV5RC
+endif
+ifeq ($(ENABLE_ROGER_MARIO),1)
+	CFLAGS += -DENABLE_ROGER_MARIO
 endif
 ifeq ($(ENABLE_MDC),1)
 	CFLAGS += -DENABLE_MDC
@@ -324,6 +393,9 @@ endif
 ifeq ($(ENABLE_TX1750),1)
 	CFLAGS += -DENABLE_TX1750
 endif
+ifeq ($(ENABLE_VOLTAGE_PERCENTAGE_WELCOME_MESSAGE),1)
+	CFLAGS += -DENABLE_VOLTAGE_PERCENTAGE_WELCOME_MESSAGE
+endif
 ifeq ($(ENABLE_STATUS_BATTERY_PERC),1)
 	CFLAGS += -DENABLE_STATUS_BATTERY_PERC
 endif
@@ -333,7 +405,22 @@ endif
 ifeq ($(ENABLE_UART),1)
 	CFLAGS += -DENABLE_UART
 endif
+ifeq ($(ENABLE_SCANLIST),1)
+	CFLAGS += -DENABLE_SCANLIST
+endif
+
+
+
+#LDFLAGS += -z noexecstack -mcpu=cortex-m0 -nostartfiles -Wl,-L,linker -Wl,-T,firmware.ld -Wl,--gc-sections
 LDFLAGS = -mcpu=cortex-m0 -nostartfiles -Wl,-T,firmware.ld
+## 2 LDFLAGS = -mcpu=cortex-m0 -nostartfiles -Wl,-T,firmware.ld,--gc-sections
+
+ifeq ($(ENABLE_COMPRESS),1)
+LDFLAGS += --specs=nano.specs
+LDFLAGS += -flto
+endif
+##LDFLAGS += --specs=nosys.specs --specs=nano.specs 
+
 ifeq ($(ENABLE_NOSCANTIMEOUT),1)
 	CFLAGS += -DENABLE_NOSCANTIMEOUT
 endif
@@ -376,8 +463,11 @@ endif
 ifeq ($(ENABLE_MESSENGER_UART),1)
 	CFLAGS += -DENABLE_MESSENGER_UART
 endif
-ifeq ($(ENABLE_ENCRYPTION),1)
-	CFLAGS  += -DENABLE_ENCRYPTION
+ifeq ($(ENABLE_MESSENGER_ENCRYPTION),1)
+	CFLAGS  += -DENABLE_MESSENGER_ENCRYPTION
+endif
+ifeq ($(ENABLE_MESSENGER_ROGERBEEP_NOTIFICATION),1)
+	CFLAGS += -DENABLE_MESSENGER_ROGERBEEP_NOTIFICATION
 endif
 ifeq ($(ENABLE_CW),1)
 	CFLAGS += -DENABLE_CW
@@ -447,3 +537,4 @@ clean:
 
 prog: all
 	$(K5PROG) firmware.bin
+	

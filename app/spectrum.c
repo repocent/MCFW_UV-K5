@@ -15,6 +15,7 @@
  */
 
 #include "../app/spectrum.h"
+#include "../helper/battery.h"
 #include "finput.h"
 #include <string.h>
 #define F_MIN FrequencyBandTable[0].lower
@@ -38,6 +39,7 @@ bool preventKeypress = true;
 
 bool isListening = false;
 bool isTransmitting = false;
+bool lockAGC = false;
 
 State currentState = SPECTRUM, previousState = SPECTRUM;
 
@@ -100,6 +102,12 @@ bool isMovingInitialized = false;
 uint8_t lastStepsCount = 0;
 
 VfoState_t txAllowState;
+
+void LockAGC()
+{
+  RADIO_SetupAGC(settings.modulationType==MOD_AM, lockAGC);
+  lockAGC = true;
+}
 
 static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v = BK4819_GetRegValue(s);
@@ -279,7 +287,7 @@ static void ToggleRX(bool on) {
   if (on) {
     ToggleTX(false);
   }
-
+  RADIO_SetupAGC(on, lockAGC);
   BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
   BK4819_RX_TurnOn();
 
@@ -692,6 +700,7 @@ static void DrawSpectrum() {
   }
 }
 
+/*
 static void UpdateBatteryInfo() {
   for (uint8_t i = 0; i < 4; i++) {
     BOARD_ADC_GetBatteryInfo(&gBatteryVoltages[i], &gBatteryCurrent);
@@ -707,7 +716,7 @@ static void UpdateBatteryInfo() {
     }
   }
 }
-
+*/
 static void DrawStatus() {
 
   if (currentState == SPECTRUM) {
@@ -1202,7 +1211,8 @@ void OnKeyDownStill(KEY_Code_t key) {
   case KEY_PTT:
 #endif
     // start transmit
-    UpdateBatteryInfo();
+    // UpdateBatteryInfo();
+	BATTERY_GetReadings(true);
     if (gBatteryDisplayLevel == 6) {
       txAllowState = VFO_STATE_VOL_HIGH;
     } else if (IsTXAllowed(GetOffsetedF(gCurrentVfo, fMeasure))) {
@@ -1240,6 +1250,7 @@ void OnKeyDownStill(KEY_Code_t key) {
     }
 #endif
     SetState(SPECTRUM);
+    lockAGC = false;
     monitorMode = false;
     RelaunchScan();
     break;
@@ -1515,8 +1526,16 @@ static void Tick() {
       AM_fix_10ms(vfo, !lockAGC); //allow AM_Fix to apply its AGC action
   }
   */
+ /*
  if (gRxVfo->ModulationType == MOD_AM)
     AM_fix_10ms(gEeprom.RX_CHANNEL);
+*/
+if (gNextTimeslice) {
+    gNextTimeslice = false;
+    if(settings.modulationType == MOD_AM && !lockAGC) {
+      AM_fix_10ms(gEeprom.RX_CHANNEL); //allow AM_Fix to apply its AGC action
+    }
+  }
 #endif  
 #if defined(ENABLE_UART)
   if (UART_IsCommandAvailable()) {
@@ -1542,7 +1561,8 @@ static void Tick() {
   }
   if (++batteryUpdateTimer > 4096) {
     batteryUpdateTimer = 0;
-    UpdateBatteryInfo();
+    //UpdateBatteryInfo();
+	BATTERY_GetReadings(true);
     redrawStatus = true;
   }
   if (redrawStatus) {
@@ -1593,7 +1613,8 @@ void APP_RunSpectrum() {
 
   RelaunchScan();
 
-  memset(rssiHistory, 0, 128);
+  //memset(rssiHistory, 0, 128);
+  memset(rssiHistory, 0, 128 * sizeof(*rssiHistory));
 
   isInitialized = true;
 

@@ -12,11 +12,12 @@
 #include "audio.h"
 #include "functions.h"
 #include "driver/system.h"
+#include "app/generic.h"
 #include "app/messenger.h"
 #include "ui/ui.h"
 #include "ui/status.h"
 #include "frequencies.h"
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
 #include "helper/crypto.h"
 #endif
 #ifdef ENABLE_MESSENGER_UART
@@ -579,7 +580,7 @@ void MSG_Send(const char txMessage[TX_MSG_LENGTH], bool bServiceMessage)
 			if (bServiceMessage) {
 				dataPacket.data.header=ACK_PACKET;
 			} else {
-			#ifdef ENABLE_ENCRYPTION
+			#ifdef ENABLE_MESSENGER_ENCRYPTION
 				if(gEeprom.MESSENGER_CONFIG.data.encrypt) {
 					dataPacket.data.header=ENCRYPTED_MESSAGE_PACKET;
 				} else {
@@ -606,7 +607,7 @@ void MSG_Send(const char txMessage[TX_MSG_LENGTH], bool bServiceMessage)
 				memset(cMessage, 0, sizeof(cMessage));
 			}			
 
-			#ifdef ENABLE_ENCRYPTION
+			#ifdef ENABLE_MESSENGER_ENCRYPTION
 			if(dataPacket.data.header == ENCRYPTED_MESSAGE_PACKET){
 				
 				CRYPTO_Random(dataPacket.data.nonce, NONCE_LENGTH);
@@ -692,7 +693,7 @@ void MSG_StorePacket(const uint16_t interrupt_bits)
 		if (gFSKWriteIndex > 2)
 		{
 
-			#ifdef ENABLE_ENCRYPTION
+			#ifdef ENABLE_MESSENGER_ENCRYPTION
 			if(dataPacket.data.header == ENCRYPTED_MESSAGE_PACKET) {
 				CRYPTO_Crypt(dataPacket.data.payload,
 					TX_MSG_LENGTH,
@@ -711,7 +712,9 @@ void MSG_StorePacket(const uint16_t interrupt_bits)
 				if(gEeprom.MESSENGER_CONFIG.data.ack) {
 					if (dataPacket.data.payload[5] == 'R' && dataPacket.data.payload[6] == 'C' && dataPacket.data.payload[7] == 'V' && dataPacket.data.payload[8] == 'D')
 					{
-						UART_printf("SVC<RCPT\r\n");
+						#ifdef ENABLE_MESSENGER_UART
+							UART_printf("SVC<RCPT\r\n");
+						#endif
 						rxMessage[LAST_LINE][0] = '+';
 						gUpdateStatus = true;
 						gUpdateDisplay = true;
@@ -737,14 +740,35 @@ void MSG_StorePacket(const uint16_t interrupt_bits)
 						RADIO_SetTxParameters();
 						SYSTEM_DelayMs(500);
 						BK4819_ExitTxMute();
+					#ifdef ENABLE_MESSENGER_ROGERBEEP_NOTIFICATION	
+					if(gEeprom.MESSENGER_CONFIG.data.notification) {
 						BK4819_PlayRoger(99);
-			
+					}
+					#endif
 						// Transmit a message to the sender that we have received the message (Unless it's a service message)
 						if (dataPacket.data.payload[2] != 0x1b)
 						{
 							MSG_Send("\x1b\x1b\x1bRCVD                       ", true);
 						}
 					}
+
+					#ifdef ENABLE_MESSENGER_ROGERBEEP_NOTIFICATION	
+					
+					if(!gEeprom.MESSENGER_CONFIG.data.ack && gEeprom.MESSENGER_CONFIG.data.notification) {
+						BK4819_DisableDTMF();
+						RADIO_SetTxParameters();
+						SYSTEM_DelayMs(500);
+						BK4819_ExitTxMute();
+						BK4819_PlayRoger(99);
+					}
+					#endif
+					
+					
+					
+					
+					
+					
+
 				}
 
 			}
@@ -777,7 +801,7 @@ void MSG_Init()
 	prevKey = 0;
 	prevLetter = 0;
 	cIndex = 0;
-	#ifdef ENABLE_ENCRYPTION
+	#ifdef ENABLE_MESSENGER_ENCRYPTION
 		gRecalculateEncKey = true;
 	#endif
 }
@@ -874,8 +898,14 @@ void MSG_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 		switch (Key)
 		{
 		case KEY_F:
+		if (gEeprom.KEY_LOCK && gKeypadLocked) {
+		 GENERIC_Key_F(bKeyPressed, bKeyHeld);
+		}
+		else
+		{
 			// clear all
 			MSG_Init();
+		}
 			break;
 		default:
 			//gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;

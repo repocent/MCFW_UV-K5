@@ -95,6 +95,21 @@ bool RADIO_CheckValidChannel(uint16_t Channel, bool bCheckScanList,
       PriorityCh1 = gEeprom.SCANLIST_PRIORITY_CH1[1];
       PriorityCh2 = gEeprom.SCANLIST_PRIORITY_CH2[1];
       break;
+       case 3:
+        if (((Attributes & MR_CH_SCANLIST1) == 0) && ((Attributes & MR_CH_SCANLIST2) == 0)) {
+            return false;
+        }
+        PriorityCh1 = gEeprom.SCANLIST_PRIORITY_CH1[0];
+        PriorityCh2 = gEeprom.SCANLIST_PRIORITY_CH2[0];
+        if (PriorityCh1 == Channel || PriorityCh2 == Channel) {
+            return false;
+        }
+        PriorityCh1 = gEeprom.SCANLIST_PRIORITY_CH1[1];
+        PriorityCh2 = gEeprom.SCANLIST_PRIORITY_CH2[1];
+        if (PriorityCh1 == Channel || PriorityCh2 == Channel) {
+            return false;
+        }
+        break;
     default:
       return true;
     }
@@ -388,6 +403,7 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo) {
     pInfo->SquelchOpenRSSIThresh = 0x00;
     pInfo->SquelchOpenNoiseThresh = 0x7F;
     pInfo->SquelchCloseGlitchThresh = 0xFF;
+	
     pInfo->SquelchCloseRSSIThresh = 0x00;
     pInfo->SquelchCloseNoiseThresh = 0x7F;
     pInfo->SquelchOpenGlitchThresh = 0xFF;
@@ -400,7 +416,6 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo) {
     EEPROM_ReadBuffer(Base + 0x40, &pInfo->SquelchCloseGlitchThresh, 1);
     EEPROM_ReadBuffer(Base + 0x50, &pInfo->SquelchOpenGlitchThresh, 1);
 
-		#if ENABLE_SQUELCH_MORE_SENSITIVE
 
 		uint16_t rssi_open    = pInfo->SquelchOpenRSSIThresh;
 		uint16_t rssi_close   = pInfo->SquelchCloseRSSIThresh;
@@ -408,6 +423,8 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo) {
 		uint16_t noise_close  = pInfo->SquelchCloseNoiseThresh;
 		uint16_t glitch_open  = pInfo->SquelchOpenGlitchThresh;
 		uint16_t glitch_close = pInfo->SquelchCloseGlitchThresh;
+
+		#if ENABLE_SQUELCH_MORE_SENSITIVE
 
 			// make squelch a little more sensitive
 			//
@@ -737,6 +754,26 @@ void RADIO_SetTxParameters(void) {
   }
 }
 
+
+void RADIO_SetupAGC(bool listeningAM, bool disable)
+{
+	static uint8_t lastSettings;
+	uint8_t newSettings = (listeningAM << 1) | (disable << 1);
+	if(lastSettings == newSettings)
+		return;
+	lastSettings = newSettings;
+
+
+	if(!listeningAM) { // if not actively listening AM we don't need any AM specific regulation
+		BK4819_SetAGC(!disable);
+		BK4819_SetAGC(0);
+	}
+	else {
+		BK4819_SetAGC(!disable);
+		BK4819_SetAGC(0);
+	}
+}
+
 void RADIO_SetVfoState(VfoState_t State) {
   if (State == VFO_STATE_NORMAL) {
     VfoState[0] = VFO_STATE_NORMAL;
@@ -903,59 +940,67 @@ void RADIO_PrepareCssTX(void) {
 
 void RADIO_SendEndOfTransmission(void) {
 
-#if defined (ENABLE_ROGERBEEP) && defined (ENABLE_MDC)
+#ifdef ENABLE_ROGER_DEFAULT
   if (gEeprom.ROGER == ROGER_MODE_DEFAULT) {
-  BK4819_PlayRoger(0);
-  } else if (gEeprom.ROGER == ROGER_MODE_MOTOTRBO) { 
+    BK4819_PlayRoger(0);
+}
+#endif
+
+#ifdef ENABLE_ROGER_MOTOTRBO
+  if (gEeprom.ROGER == ROGER_MODE_MOTOTRBO) { 
     BK4819_PlayRoger(1);
-  } else if (gEeprom.ROGER == ROGER_MODE_TPT) { 
+}
+#endif
+
+#ifdef ENABLE_ROGER_TPT
+  if (gEeprom.ROGER == ROGER_MODE_TPT) { 
     BK4819_PlayRoger(2); 
-  } else if (gEeprom.ROGER == ROGER_MODE_MOTOTRBOT40) { 
-	BK4819_PlayRoger(3); 	
-  } else if (gEeprom.ROGER == ROGER_MODE_MOTOTRBOTLKRT80) { 
-	BK4819_PlayRoger(4); 	
-  } else if (gEeprom.ROGER == ROGER_MODE_ROGERCOBRAAM845) { 
-	BK4819_PlayRoger(5);
-  } else if (gEeprom.ROGER == ROGER_MODE_POLICE_ITA) { 
-	BK4819_PlayRoger(6);
-  } else if (gEeprom.ROGER == ROGER_MODE_UV5RC) { 
-	BK4819_PlayRoger(7);	
-  } else if (gEeprom.ROGER == ROGER_MODE_MDC) {
-    BK4819_PlayRogerMDC();
-  }
-  
-  
-  
-  	ROGER_MODE_UV5RC,
-	
-#elif defined (ENABLE_ROGERBEEP) && !defined (ENABLE_MDC)
-  if (gEeprom.ROGER == ROGER_MODE_DEFAULT) {
-  BK4819_PlayRoger(0);
-  } else if (gEeprom.ROGER == ROGER_MODE_MOTOTRBO) { 
-    BK4819_PlayRoger(1);
-  } else if (gEeprom.ROGER == ROGER_MODE_TPT) { 
-    BK4819_PlayRoger(2); 
-  } else if (gEeprom.ROGER == ROGER_MODE_MOTOTRBOT40) { 
-	BK4819_PlayRoger(3); 	
-  } else if (gEeprom.ROGER == ROGER_MODE_MOTOTRBOTLKRT80) { 
-	BK4819_PlayRoger(4); 	
-  } else if (gEeprom.ROGER == ROGER_MODE_ROGERCOBRAAM845) { 
-	BK4819_PlayRoger(5);
-  } else if (gEeprom.ROGER == ROGER_MODE_POLICE_ITA) { 
-	BK4819_PlayRoger(6);
-  } else if (gEeprom.ROGER == ROGER_MODE_UV5RC) { 
-	BK4819_PlayRoger(7);	
-	/*
-	
-  } else if (gEeprom.ROGER == ROGER_MODE_ROGERMARIO) {
-	BK4819_PlayRogerMario();
-  }*/
-  }  
-#elif !defined (ENABLE_ROGERBEEP) && defined (ENABLE_MDC)
+}
+#endif
+
+#ifdef ENABLE_ROGER_MOTOTRBOT40
+  if (gEeprom.ROGER == ROGER_MODE_MOTOTRBOT40) { 
+    BK4819_PlayRoger(3); 	
+}
+#endif
+
+#ifdef ENABLE_ROGER_MOTOTRBOTLKRT80
+  if (gEeprom.ROGER == ROGER_MODE_MOTOTRBOTLKRT80) { 
+    BK4819_PlayRoger(4); 	
+}
+#endif
+
+#ifdef ENABLE_ROGER_ROGERCOBRAAM845
+  if (gEeprom.ROGER == ROGER_MODE_ROGERCOBRAAM845) { 
+    BK4819_PlayRoger(5);
+}
+#endif
+
+#ifdef ENABLE_ROGER_POLICE_ITA
+  if (gEeprom.ROGER == ROGER_MODE_POLICE_ITA) { 
+    BK4819_PlayRoger(6);
+}
+#endif
+
+#ifdef ENABLE_ROGER_UV5RC
+  if (gEeprom.ROGER == ROGER_MODE_UV5RC) { 
+    BK4819_PlayRoger(7);	
+}
+#endif
+
+#ifdef ENABLE_ROGER_MARIO
+  if (gEeprom.ROGER == ROGER_MODE_MARIO) { 
+    BK4819_PlayRoger(8);	
+}
+#endif
+
+#ifdef ENABLE_MDC
+
   if (gEeprom.ROGER == ROGER_MODE_MDC) {
-  BK4819_PlayRogerMDC();
-	}	
-#endif  
+    BK4819_PlayRogerMDC();
+}
+#endif
+
  
   
 #ifdef ENABLE_DTMF_CALLING

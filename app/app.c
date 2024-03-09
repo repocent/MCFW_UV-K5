@@ -38,10 +38,12 @@
 #ifdef ENABLE_MESSENGER
 	#include "messenger.h"
 #endif
-#ifdef ENABLE_ENCRYPTION
+#ifdef ENABLE_MESSENGER_ENCRYPTION
 	#include "helper/crypto.h"
 #endif
+#ifdef ENABLE_SCANLIST
 #include "../apps/scanlist.h"
+#endif
 #include "ARMCM0.h"
 #include "audio.h"
 #include "board.h"
@@ -463,65 +465,79 @@ static void FREQ_NextChannel(void) {
 }
 
 static void MR_NextChannel(void) {
-  uint8_t Ch1 = gEeprom.SCANLIST_PRIORITY_CH1[gEeprom.SCAN_LIST_DEFAULT];
-  uint8_t Ch2 = gEeprom.SCANLIST_PRIORITY_CH2[gEeprom.SCAN_LIST_DEFAULT];
-  uint8_t PreviousCh, Ch;
-  bool bEnabled;
+    uint8_t Ch1 = gEeprom.SCANLIST_PRIORITY_CH1[gEeprom.SCAN_LIST_DEFAULT];
+    uint8_t Ch2 = gEeprom.SCANLIST_PRIORITY_CH2[gEeprom.SCAN_LIST_DEFAULT];
+    uint8_t PreviousCh, Ch;
+    bool bEnabled;
 
-  PreviousCh = gNextMrChannel;
-  bEnabled = gEeprom.SCAN_LIST_ENABLED[gEeprom.SCAN_LIST_DEFAULT];
-  if (bEnabled) {
-    if (gCurrentScanList == 0) {
-      gPreviousMrChannel = gNextMrChannel;
-      if (RADIO_CheckValidChannel(Ch1, false, 0)) {
-        gNextMrChannel = Ch1;
-      } else {
-        gCurrentScanList = 1;
-      }
-    }
-    if (gCurrentScanList == 1) {
-      if (RADIO_CheckValidChannel(Ch2, false, 0)) {
-        gNextMrChannel = Ch2;
-      } else {
-        gCurrentScanList = 2;
-      }
-    }
-    if (gCurrentScanList == 2) {
-      gNextMrChannel = gPreviousMrChannel;
+    PreviousCh = gNextMrChannel;
+    bEnabled = gEeprom.SCAN_LIST_ENABLED[gEeprom.SCAN_LIST_DEFAULT];
+    
+    if (bEnabled) {
+        if (gCurrentScanList == 0) {
+            gPreviousMrChannel = gNextMrChannel;
+            if (RADIO_CheckValidChannel(Ch1, false, 0)) {
+                gNextMrChannel = Ch1;
+            } else {
+                gCurrentScanList = 1;
+            }
+        } else if (gCurrentScanList == 1) {
+            if (RADIO_CheckValidChannel(Ch2, false, 0)) {
+                gNextMrChannel = Ch2;
+            } else {
+                gCurrentScanList = 3;
+            }
+        } else if (gCurrentScanList == 2) {
+            gNextMrChannel = gPreviousMrChannel;
+            gCurrentScanList = 3;
+        } else {
+            // Se gCurrentScanList for 3, tentamos verificar Ch1 e Ch2 sequencialmente
+            if (RADIO_CheckValidChannel(Ch1, false, 0)) {
+                gNextMrChannel = Ch1;
+            } else if (RADIO_CheckValidChannel(Ch2, false, 0)) {
+                gNextMrChannel = Ch2;
+            } else {
+                // Se nenhum dos canais for válido, avançamos para a próxima lista de varredura
+                gCurrentScanList = 0;
+            }
+        }
     } else {
-      goto Skip;
+        // Se a lista de varredura não estiver ativada, saímos da função
+        return;
     }
-  }
 
-  Ch = RADIO_FindNextChannel(gNextMrChannel + gScanState, gScanState, true,
-                             gEeprom.SCAN_LIST_DEFAULT);
-  if (Ch == 0xFF) {
-    return;
-  }
+    Ch = RADIO_FindNextChannel(gNextMrChannel + gScanState, gScanState, true, gEeprom.SCAN_LIST_DEFAULT);
+    
+    if (Ch == 0xFF) {
+        return;
+    }
 
-  gNextMrChannel = Ch;
+    gNextMrChannel = Ch;
 
-Skip:
-  if (PreviousCh != gNextMrChannel) {
-    gEeprom.MrChannel[gEeprom.RX_CHANNEL] = gNextMrChannel;
-    gEeprom.ScreenChannel[gEeprom.RX_CHANNEL] = gNextMrChannel;
-    RADIO_ConfigureChannel(gEeprom.RX_CHANNEL, 2);
-    RADIO_SetupRegisters(true);
-    gUpdateDisplay = true;
-  }
+    if (PreviousCh != gNextMrChannel) {
+        gEeprom.MrChannel[gEeprom.RX_CHANNEL] = gNextMrChannel;
+        gEeprom.ScreenChannel[gEeprom.RX_CHANNEL] = gNextMrChannel;
+        RADIO_ConfigureChannel(gEeprom.RX_CHANNEL, 2);
+        RADIO_SetupRegisters(true);
+        gUpdateDisplay = true;
+    }
+    
 #ifdef ENABLE_FASTER_CHANNEL_SCAN
-  ScanPauseDelayIn10msec = 6;
+    ScanPauseDelayIn10msec = 6;
 #else
-  ScanPauseDelayIn10msec = 20;
+    ScanPauseDelayIn10msec = 20;
 #endif
-  bScanKeepFrequency = false;
-  if (bEnabled) {
-    gCurrentScanList++;
-    if (gCurrentScanList >= 2) {
-      gCurrentScanList = 0;
+    
+    bScanKeepFrequency = false;
+
+    if (bEnabled) {
+        gCurrentScanList++;
+        if (gCurrentScanList >= 3) {
+            gCurrentScanList = 0;
+        }
     }
-  }
 }
+
 
 static void DUALWATCH_Alternate(void) {
   gEeprom.RX_CHANNEL = gEeprom.RX_CHANNEL == 0;
@@ -706,6 +722,9 @@ void APP_Update(void) {
   if (gCurrentFunction == FUNCTION_TRANSMIT && gTxTimeoutReached) {
     gTxTimeoutReached = false;
     gFlagEndTransmission = true;
+#ifdef ENABLE_TIMEOUT_ROGERBEEP_NOTIFICATION	
+	BK4819_PlayRoger(98);
+#endif	
     APP_EndTransmission();
     AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP);
     RADIO_SetVfoState(VFO_STATE_TIMEOUT);
@@ -1220,7 +1239,7 @@ void APP_TimeSlice500ms(void) {
     return;
   }
 
-  #ifdef ENABLE_ENCRYPTION
+  #ifdef ENABLE_MESSENGER_ENCRYPTION
 		if(gRecalculateEncKey){
 			CRYPTO_Generate256BitKey(gEeprom.ENC_KEY, gEncryptionKey, sizeof(gEeprom.ENC_KEY));
 			gRecalculateEncKey = false;
@@ -1667,9 +1686,11 @@ static void APP_ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
 
       if (gAppToDisplay) {
         switch (gAppToDisplay) {
+  #ifdef ENABLE_SCANLIST
         case APP_SCANLIST:
           SCANLIST_key(Key, bKeyPressed, bKeyHeld);
           break;
+  #endif		  
   #ifdef ENABLE_MESSENGER
         case APP_MESSENGER:
           MSG_ProcessKeys(Key, bKeyPressed, bKeyHeld);

@@ -608,19 +608,70 @@ void BOARD_EEPROM_Init(void)
 	EEPROM_ReadBuffer(0x0EA0, Data, 8);
 	gEeprom.VOICE_PROMPT = (Data[0] < 3) ? Data[0] : VOICE_PROMPT_CHINESE;
 
+	// 1BAA..1BAF
+	EEPROM_ReadBuffer(0x1BAA, Data, 5);
 	#ifdef ENABLE_MESSENGER
-	gEeprom.MESSENGER_CONFIG.__val = Data[3];
+	gEeprom.MESSENGER_CONFIG.__val = Data[0];
 	#endif
 
 	// 0EA8..0EAF
 	EEPROM_ReadBuffer(0x0EA8, Data, 8);
+#if defined(ENABLE_ROGER_OFF) || defined(ENABLE_ROGER_DEFAULT) || defined(ENABLE_ROGER_MOTOTRBO) || defined(ENABLE_ROGER_TPT) || defined(ENABLE_ROGER_MOTOTRBOT40) || defined(ENABLE_ROGER_MOTOTRBOTLKRT80) || defined(ENABLE_ROGER_ROGERCOBRAAM845) || defined(ENABLE_ROGER_POLICE_ITA) || defined(ENABLE_ROGER_UV5RC) || defined(ENABLE_ROGER_MARIO) || defined(ENABLE_MDC)
+   int NUM_ROGER_MODES;
+    NUM_ROGER_MODES = 1;
 
-#if defined(ENABLE_ROGERBEEP) && defined(ENABLE_MDC)
-	gEeprom.ROGER                          = (Data[1] <  10) ? Data[1] : ROGER_MODE_OFF;
-#elif !defined(ENABLE_MDC) && defined(ENABLE_ROGERBEEP)
-	gEeprom.ROGER                          = (Data[1] <  9) ? Data[1] : ROGER_MODE_OFF;			
-#elif defined (ENABLE_MDC) && !defined(ENABLE_ROGERBEEP)
-	gEeprom.ROGER                          = (Data[1] <  2) ? Data[1] : ROGER_MODE_OFF;	
+#ifdef ENABLE_ROGER_DEFAULT
+    NUM_ROGER_MODES++;
+
+#endif
+
+#ifdef ENABLE_ROGER_MOTOTRBO
+    NUM_ROGER_MODES++;
+
+#endif
+
+#ifdef ENABLE_ROGER_TPT
+    NUM_ROGER_MODES++;
+
+#endif
+
+#ifdef ENABLE_ROGER_MOTOTRBOT40
+    NUM_ROGER_MODES++;
+
+#endif
+
+#ifdef ENABLE_ROGER_MOTOTRBOTLKRT80
+    NUM_ROGER_MODES++;
+
+#endif
+
+#ifdef ENABLE_ROGER_ROGERCOBRAAM845
+    NUM_ROGER_MODES++;
+
+#endif
+
+#ifdef ENABLE_ROGER_POLICE_ITA
+    NUM_ROGER_MODES++;
+
+#endif
+
+#ifdef ENABLE_ROGER_UV5RC
+    NUM_ROGER_MODES++;
+
+#endif
+
+#ifdef ENABLE_ROGER_MARIO
+    NUM_ROGER_MODES++;
+
+#endif
+
+#ifdef ENABLE_MDC
+    NUM_ROGER_MODES++;
+
+#endif
+
+gEeprom.ROGER = (Data[1] < NUM_ROGER_MODES) ? Data[1] : ROGER_MODE_OFF;
+
 #endif
 	gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] < 11) ? Data[2] : 0;
 	gEeprom.TX_CHANNEL                     = (Data[3] <  2) ? Data[3] : 0;
@@ -656,7 +707,14 @@ void BOARD_EEPROM_Init(void)
 
 	// 0EE8..0EEF
     // Killcode removed
-
+#ifdef ENABLE_REMOTEKILL	
+	EEPROM_ReadBuffer(0x0EE8, Data, 8);
+	if (DTMF_ValidateCodes((char *)Data, 8)) {
+		memcpy(gEeprom.KILL_CODE, Data, 8);
+	} else {
+		memcpy(gEeprom.KILL_CODE, "ABCD9\0\0", 8);
+	}
+#endif
 	// 0EF0..0EF7
 	EEPROM_ReadBuffer(0x0EF0, Data, 8);
 	if (DTMF_ValidateCodes((char *)Data, 8)) {
@@ -698,24 +756,24 @@ void BOARD_EEPROM_Init(void)
 	// 0F18..0F1F
 	EEPROM_ReadBuffer(0x0F18, Data, 8);
 
-	gEeprom.SCAN_LIST_DEFAULT = (Data[0] < 3) ? Data[0] : false;
+gEeprom.SCAN_LIST_DEFAULT = (Data[0] < 4) ? Data[0] : false;
 
-	for (int i = 0; i < 2; i++) {
-		uint8_t j = (i * 3) + 1;
-		gEeprom.SCAN_LIST_ENABLED[i]     = (Data[j] < 3) ? Data[j] : false;
-		gEeprom.SCANLIST_PRIORITY_CH1[i] = Data[j + 1];
-		gEeprom.SCANLIST_PRIORITY_CH2[i] = Data[j + 2];
-	/*
-		// Verifique se o canal não é um canal de usuário
-		if (!IS_USER_CHANNEL(gEeprom.SCAN_LIST_PRIORITY_CH1[i])) {
-			gEeprom.SCANLIST_PRIORITY_CH1[i] = 0xFF;
-		}
+for (int i = 0; i < 2; i++) {
+    uint8_t j = (i * 3) + 1;
+    gEeprom.SCAN_LIST_ENABLED[i]     = (Data[j] < 4) ? Data[j] : false;
+    gEeprom.SCANLIST_PRIORITY_CH1[i] = Data[j + 1];
+    gEeprom.SCANLIST_PRIORITY_CH2[i] = Data[j + 2];
+/*
+    // Verifique se o canal não é um canal de usuário
+    if (!IS_USER_CHANNEL(gEeprom.SCAN_LIST_PRIORITY_CH1[i])) {
+        gEeprom.SCANLIST_PRIORITY_CH1[i] = 0xFF;
+    }
 
-		if (!IS_USER_CHANNEL(gEeprom.SCAN_LIST_PRIORITY_CH2[i])) {
-			gEeprom.SCANLIST_PRIORITY_CH2[i] = 0xFF;
-		}
-		*/
-	}
+    if (!IS_USER_CHANNEL(gEeprom.SCAN_LIST_PRIORITY_CH2[i])) {
+        gEeprom.SCANLIST_PRIORITY_CH2[i] = 0xFF;
+    }
+	*/
+}
 
 //gEeprom.UNUSED_10 = 0xFF;
 
@@ -740,7 +798,15 @@ void BOARD_EEPROM_Init(void)
 	// 0F30..0F3F
 	EEPROM_ReadBuffer(0x0F30, gCustomAesKey, sizeof(gCustomAesKey));	
 
-	for (uint8_t i = 0; i < 4; i++) {
+	#ifdef ENABLE_MESSENGER_ENCRYPTION
+		// 0F30..0F3F - load encryption key
+		//EEPROM_ReadBuffer(0x0F30, gEeprom.ENC_KEY, sizeof(gEeprom.ENC_KEY));
+      EEPROM_ReadBuffer(0x1BBA, gEeprom.ENC_KEY, 5);
+      EEPROM_ReadBuffer(0x1BCA, gEeprom.ENC_KEY + 5, 5);
+
+	#endif
+
+	/*for (i = 0; i < 4; i++) {
 		if (gCustomAesKey[i] != 0xFFFFFFFFU) {
 			bHasCustomAesKey = true;
 			return;
