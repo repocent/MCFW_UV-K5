@@ -1,5 +1,5 @@
 # Open Source Firmware for Quansheng UV-K* Radios
-An attempt to port unify as many of the many other fork's features as possible
+An attempt to port unify as many of the many other fork's features as possible. Extra changes to repo made by me myself and I.
 
 [![Compile with Docker CI](https://github.com/qshosfw/matoz/actions/workflows/cwd.yml/badge.svg)](https://github.com/qshosfw/matoz/actions/workflows/cwd.yml) 
 ![GitHub License](https://img.shields.io/github/license/qshosfw/matoz) 
