@@ -1225,15 +1225,16 @@ void BK4819_PlayRoger(int t) {
 #endif
 
 #ifdef ENABLE_ROGER_POLICE_ITA
-  case 6: // PlayRoger Police Italy
-    BK4819_PlayBeep(800, 60);
-    BK4819_PlayBeep(2200, 60);
-    BK4819_PlayBeep(885, 60);
-    BK4819_PlayBeep(1540, 60);
-    BK4819_PlayBeep(1300, 60);
-    BK4819_PlayBeep(975, 60);
-    BK4819_PlayBeep(1180, 60);
-    BK4819_PlayBeep(1075, 60);
+  case 6: // PlayRoger Police Italy 
+    BK4819_PlayBeep(220, 50);  // A3
+    BK4819_PlayBeep(0, 50);    // Rest
+    BK4819_PlayBeep(277, 50);  // C#4
+    BK4819_PlayBeep(0, 50);    // Rest
+    BK4819_PlayBeep(330, 50);  // E4
+    BK4819_PlayBeep(0, 50);    // Rest
+    BK4819_PlayBeep(440, 50);  // A4
+    BK4819_PlayBeep(0, 100);   // Longer Rest
+    BK4819_PlayBeep(440, 50);  // A4
     break;
 #endif
 
