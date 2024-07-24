@@ -1245,16 +1245,16 @@ void BK4819_PlayRoger(int t) {
 #endif
 
 #ifdef ENABLE_ROGER_MARIO
-  case 8: // Mario Dies
-    BK4819_PlayBeep(494, 286 / 2);
-    BK4819_PlayBeep(698, 190 / 2);
-    BK4819_PlayBeep(0, 306 / 2);
-    BK4819_PlayBeep(698, 258 / 2);
-    BK4819_PlayBeep(698, 340 / 2);
-    BK4819_PlayBeep(659, 328 / 2);
-    BK4819_PlayBeep(587, 344 / 2);
-    BK4819_PlayBeep(523, 262 / 2);
-    break;
+  case 8: // Mario Dies in the General Lee
+    BK4819_PlayBeep(659, 100);
+    BK4819_PlayBeep(784, 100);
+    BK4819_PlayBeep(880, 100);
+    BK4819_PlayBeep(988, 200);
+    BK4819_PlayBeep(880, 100);
+    BK4819_PlayBeep(784, 100);
+    BK4819_PlayBeep(659, 100);
+    BK4819_PlayBeep(784, 200);
+break;
 #endif
 
 #ifdef ENABLE_TIMEOUT_ROGERBEEP_NOTIFICATION
