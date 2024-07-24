@@ -1226,16 +1226,23 @@ void BK4819_PlayRoger(int t) {
 
 #ifdef ENABLE_ROGER_POLICE_ITA
   case 6: // PlayRoger Police Italy 
-    BK4819_PlayBeep(220, 50);  // A3
-    BK4819_PlayBeep(0, 50);    // Rest
-    BK4819_PlayBeep(277, 50);  // C#4
-    BK4819_PlayBeep(0, 50);    // Rest
-    BK4819_PlayBeep(330, 50);  // E4
-    BK4819_PlayBeep(0, 50);    // Rest
-    BK4819_PlayBeep(440, 50);  // A4
-    BK4819_PlayBeep(0, 100);   // Longer Rest
-    BK4819_PlayBeep(440, 50);  // A4
-    break;
+    BK4819_PlayBeep(880, 25);  // A5
+    BK4819_PlayBeep(0, 25);    // Rest
+    BK4819_PlayBeep(1109, 25); // C#6
+    BK4819_PlayBeep(0, 25);    // Rest
+    BK4819_PlayBeep(1319, 25); // E6
+    BK4819_PlayBeep(0, 25);    // Rest
+    BK4819_PlayBeep(1760, 25); // A6
+    BK4819_PlayBeep(0, 50);    // Longer Rest
+    BK4819_PlayBeep(1760, 25); // A6
+    BK4819_PlayBeep(0, 25);    // Rest
+    BK4819_PlayBeep(1319, 25); // E6
+    BK4819_PlayBeep(0, 25);    // Rest
+    BK4819_PlayBeep(1109, 25); // C#6
+    BK4819_PlayBeep(0, 25);    // Rest
+    BK4819_PlayBeep(880, 25);  // A5
+    BK4819_PlayBeep(0, 50);    // Longer Rest
+break;
 #endif
 
 #ifdef ENABLE_ROGER_UV5RC
