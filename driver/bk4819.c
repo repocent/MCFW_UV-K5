@@ -1253,15 +1253,35 @@ break;
 #endif
 
 #ifdef ENABLE_ROGER_MARIO
-  case 8: // Mario Dies in the General Lee
-    BK4819_PlayBeep(659, 100);
-    BK4819_PlayBeep(784, 100);
-    BK4819_PlayBeep(880, 100);
-    BK4819_PlayBeep(988, 200);
-    BK4819_PlayBeep(880, 100);
-    BK4819_PlayBeep(784, 100);
-    BK4819_PlayBeep(659, 100);
-    BK4819_PlayBeep(784, 200);
+  case 8: // GABBER I
+    // Kick Drum
+    BK4819_PlayBeep(50, 20);   // Very low frequency for a short duration
+    BK4819_PlayBeep(0, 80);    // Rest 
+    // Snare Drum
+    BK4819_PlayBeep(300, 20);  // Mid frequency
+    BK4819_PlayBeep(0, 30);    // Rest
+    BK4819_PlayBeep(300, 20);  // Another short burst
+    // Hi-Hat
+    BK4819_PlayBeep(1000, 10); // High frequency
+    BK4819_PlayBeep(0, 40);    // Rest
+    BK4819_PlayBeep(1000, 10); // Another short burst
+    BK4819_PlayBeep(0, 40);    // Rest
+    BK4819_PlayBeep(1000, 10); // Another short burst
+    BK4819_PlayBeep(0, 100);   // Longer rest
+    // Kick Drum again
+    BK4819_PlayBeep(50, 20);   // Very low frequenc
+    BK4819_PlayBeep(0, 80);    // Rest
+    // Snare Drum again
+    BK4819_PlayBeep(300, 20);  // Mid frequency
+    BK4819_PlayBeep(0, 30);    // Rest
+    BK4819_PlayBeep(300, 20);  // Another short burst
+    // Hi-Hat again
+    BK4819_PlayBeep(1000, 10); // High frequency
+    BK4819_PlayBeep(0, 40);    // Rest
+    BK4819_PlayBeep(1000, 10); // Another short burst
+    BK4819_PlayBeep(0, 40);    // Rest
+    BK4819_PlayBeep(1000, 10); // Another short burst
+    BK4819_PlayBeep(0, 100);   // Longer rest
 break;
 #endif
 
